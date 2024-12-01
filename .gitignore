@@ -1,0 +1,9 @@
+# the build folder and the makefile
+build
+makefile
+
+#vscode settings
+.vscode
+
+# template for each day start
+template.c
