@@ -1,5 +1,5 @@
 # the build folder and the makefile
-build
+bin
 makefile
 
 #vscode settings
