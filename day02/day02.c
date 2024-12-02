@@ -42,6 +42,58 @@ int is_safe(int* report, int level_c)
     return 1;
 }
 
+void remove_at_index(int arr[], int *size, int index)
+{
+    if (index < 0 || index >= *size) {
+        fprintf(stderr, "Index out of bounds.\n");
+        exit(1);
+    }
+
+    // shift elements to the left
+    for (int i=index; i < *size - 1; i++) {
+        arr[i] = arr[i + 1];
+    }
+
+    (*size)--;
+}
+
+void insert_at_index(int arr[], int *size, int index, int value)
+{
+    if (index < 0 || index > *size) {
+        fprintf(stderr, "Index out of bounds.\n");
+        exit(1);
+    }
+
+    // shift elements to the right
+    for (int i=*size; i > index; i--) {
+        arr[i] = arr[i - 1];
+    }
+    // insert the value
+    arr[index] = value;
+
+    (*size)++;
+}
+
+int enhanced_is_safe(int* report, int level_c)
+{
+    if (is_safe(report, level_c)) {
+        return 1;
+    } else {
+        int safekeeping;
+        // remove 1 number until safe
+        for (int i=0; i<level_c; i++) {
+            safekeeping = report[i];
+            remove_at_index(report, &level_c, i);
+            if (is_safe(report, level_c)) {
+                return 1;
+            }
+            insert_at_index(report, &level_c, i, safekeeping);
+        }
+    }
+
+    return 0;
+}
+
 int part1(char* filename)
 {
     FILE *fp;
@@ -83,9 +135,27 @@ int part2(char* filename)
         exit(1);
     }
 
+    char line[MAX_LINE_LENGTH];
+    int report[MAX_LINE_LENGTH];
+    int level_c;
+    int safe_c = 0;
+
+    while (fgets(line, sizeof(line), fp)) {
+        level_c = 0;
+        char *token = strtok(line, " "); // the first token
+        while (token != NULL) {
+            report[level_c] = atoi(token);
+            level_c++;
+            token = strtok(NULL, " "); // get the next token
+        }
+        
+        if (enhanced_is_safe(report, level_c))
+            safe_c++;
+    }
+
     fclose(fp);
 
-    return 0;
+    return safe_c;
 }
 
 int main(int argc, char** argv)
