@@ -7,11 +7,10 @@
 int execute(char *line) {
     const char *pos = line;
     int sum = 0;
+    int x, y;
+    char c;
 
     while ((pos = strstr(pos, "mul(")) != NULL) {
-        int x, y;
-        char c;
-        
         // printf("Start found at pos: %d\n", pos - line);
         if (sscanf(pos+4, "%d,%d%c", &x, &y, &c) == 3) {
             if (c==')') {
@@ -20,6 +19,57 @@ int execute(char *line) {
             }
         }
         pos++;
+    }
+
+    return sum;
+}
+
+int glob_dont = 0;
+
+int adv_execute(char *line)
+{
+    const char *pos = line;
+    int sum = 0;
+    int x, y;
+    char c;
+    
+    while (pos) {
+        const char *pos1 = strstr(pos, "don't()");
+        const char *pos2 = strstr(pos, "mul(");
+
+        if (glob_dont) {
+            pos = strstr(pos+1, "do()"); // search for the next do()
+            if (pos == NULL) {
+                break;
+            } else {
+                glob_dont = 0;
+            }
+
+            continue;
+        }
+
+        if (!pos1 && !pos2) // no match
+            break;
+
+        if (pos1 && (!pos2 || (pos1 < pos2))) {                     // don't() found before mul()
+            glob_dont = 1;
+            pos = strstr(pos1+1, "do()"); // search for the next do()
+            if (pos == NULL) {
+                break;
+            } else {
+                glob_dont = 0;
+            }
+        } else {                                                    // mul() found before don't()
+            if (sscanf(pos2+4, "%d,%d%c", &x, &y, &c) == 3) {
+                if (c==')') {
+                    // printf("X: %d, Y: %d\n", x, y);
+                    sum += x*y;
+                }
+                pos = pos2 + 4;
+            } else {
+                pos = pos2+1;
+            }
+        }
     }
 
     return sum;
@@ -55,9 +105,16 @@ int part2(char* filename)
         exit(1);
     }
 
+    char line[MAX_LINE_LENGTH];
+    int sum = 0;
+
+    while (fgets(line, sizeof(line), fp)) {
+        sum += adv_execute(line);
+    }
+
     fclose(fp);
 
-    return 0;
+    return sum;
 }
 
 int main(int argc, char** argv)
