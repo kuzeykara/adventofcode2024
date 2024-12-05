@@ -2,7 +2,28 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_LINE_LENGTH 1024
+#define MAX_LINE_LENGTH 10240
+
+int execute(char *line) {
+    const char *pos = line;
+    int sum = 0;
+
+    while ((pos = strstr(pos, "mul(")) != NULL) {
+        int x, y;
+        char c;
+        
+        // printf("Start found at pos: %d\n", pos - line);
+        if (sscanf(pos+4, "%d,%d%c", &x, &y, &c) == 3) {
+            if (c==')') {
+                // printf("X: %d, Y: %d\n", x, y);
+                sum += x*y;
+            }
+        }
+        pos++;
+    }
+
+    return sum;
+}
 
 int part1(char* filename)
 {
@@ -13,9 +34,16 @@ int part1(char* filename)
         exit(1);
     }
 
+    char line[MAX_LINE_LENGTH];
+    int sum = 0;
+
+    while (fgets(line, sizeof(line), fp)) {
+        sum += execute(line);
+    }
+
     fclose(fp);
 
-    return 0;
+    return sum;
 }
 
 int part2(char* filename)
